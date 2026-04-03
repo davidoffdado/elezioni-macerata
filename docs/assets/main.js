@@ -49,7 +49,10 @@ function parseCsv(text) {
     const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
     const row = {};
     headers.forEach((h, i) => {
-      row[h] = (cols[i] || "").replace(/^"|"$/g, "").trim();
+      let val = (cols[i] || "").replace(/^"|"$/g, "").trim();
+      // normalizza decimali italiani: "65,42" → "65.42"
+      val = val.replace(/^(-?\d+),(\d+)$/, "$1.$2");
+      row[h] = val;
     });
     return row;
   });

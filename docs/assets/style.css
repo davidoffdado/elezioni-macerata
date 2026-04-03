@@ -221,9 +221,9 @@ a:hover { text-decoration: underline; }
 }
 
 .map-btn:hover { border-color: #aaa; }
-.map-btn.active-duello  { background: #fde8e8; border-color: var(--color-accent-a); color: var(--color-accent-a); }
-.map-btn.active-aff     { background: #e8f0fb; border-color: var(--color-accent-b); color: var(--color-accent-b); }
-.map-btn.active-sez     { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+.map-btn.active-duello    { background: #fde8e8; border-color: var(--color-accent-a); color: var(--color-accent-a); }
+.map-btn.active-singolo   { background: #fff3e0; border-color: #e67e22; color: #e67e22; }
+.map-btn.active-affluenza { background: #e8f5e9; border-color: #27ae60; color: #27ae60; }
 
 /* --- Selettore candidati duello --- */
 .cand-select {

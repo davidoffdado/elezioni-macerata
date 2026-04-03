@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elezioni Macerata — Analisi per candidato</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    .sezioni-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 640px) { .sezioni-grid { grid-template-columns: 1fr; } }
+
+    .rank-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .rank-table td { padding: .45rem .6rem; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .rank-bar-wrap { width: 100px; }
+    .rank-bar {
+      height: 8px;
+      border-radius: 4px;
+      display: block;
+    }
+.candidate-selector-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .candidate-btn {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .4rem .9rem;
+      border: 2px solid var(--color-border);
+      border-radius: 20px;
+      background: var(--color-surface);
+      font-family: var(--font-sans);
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .candidate-btn .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .candidate-btn.selected {
+      background: var(--color-text);
+      color: #fff;
+      border-color: var(--color-text);
+    }
+    .totale-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: .6rem;
+    }
+    .totale-bar-label { min-width: 160px; font-size: .88rem; font-weight: 600; }
+    .totale-bar-outer {
+      flex: 1;
+      height: 22px;
+      background: var(--color-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    .totale-bar-inner { height: 100%; border-radius: 4px; transition: width .4s; }
+    .totale-bar-perc { min-width: 48px; font-size: .88rem; font-weight: 700; text-align: right; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span class="navbar-brand">Elezioni <span>Macerata</span></span>
+      <ul class="navbar-links">
+        <li><a href="index.html"             >Mappa</a></li>
+        <li><a href="analisi.html"           >Per sezione</a></li>
+        <li><a href="analisi-candidato.html" class="active">Per candidato</a></li>
+        <li><a href="metodologia.html"       >Metodologia</a></li>
+        <li><a href="dati.html"              >Dati</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div class="page-tag">Analisi dei risultati</div>
+      <h1 class="page-title">Analisi per candidato</h1>
+      <p class="page-subtitle">
+        Risultato complessivo e distribuzione geografica del voto per ciascun candidato.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- RISULTATO COMPLESSIVO -->
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Risultato complessivo — voti validi</div>
+          <div id="totale-bars">
+            <p style="color:var(--color-muted); font-size:.9rem">Caricamento...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELETTORE CANDIDATO -->
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Approfondimento per candidato</div>
+          <div class="candidate-selector-wrap" id="candidate-buttons">
+            <!-- popolato da JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SEZIONI MIGLIORI / PEGGIORI -->
+      <div class="section" id="sezione-dettaglio" style="display:none">
+        <div class="sezioni-grid">
+
+          <div class="card">
+            <div class="card-title" id="title-top">Sezioni migliori</div>
+            <table class="rank-table" id="table-top">
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-title" id="title-bottom">Sezioni peggiori</div>
+            <table class="rank-table" id="table-bottom">
+              <tbody></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Dati: <a href="dati.html">fonti e licenze</a> &mdash;
+      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    const PUBLISHED_ID = "2PACX-1vSXkyX7vkmpegphAnR6HxPimNMoLBtH3rixk7Lyn3jZPHWH468lUxpbXBZQVC3zr3HduLNMVgxDLcVs";
+    const SHEET_GIDS = {
+      meta:      "0",
+      voti:      "1712458015",
+      affluenza: "683200541",
+    };
+    const PALETTE_DEFAULT = [
+      "#c0392b","#2563a8","#27ae60","#e67e22","#8e44ad",
+      "#16a085","#d35400","#2980b9","#c0392b","#7f8c8d",
+    ];
+
+    function sheetUrl(name) {
+      return `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=${SHEET_GIDS[name]}`;
+    }
+
+    async function fetchCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, "").trim());
+      return lines.slice(1).map(line => {
+        const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+        const row = {};
+        headers.forEach((h, i) => {
+          let val = (cols[i] || "").replace(/^"|"$/g, "").trim();
+          val = val.replace(/^(-?\d+),(\d+)$/, "$1.$2");
+          row[h] = val;
+        });
+        return row;
+      });
+    }
+
+    function parseCandidates(metaRows) {
+      const map = {};
+      metaRows.forEach(r => { map[r.chiave] = r.valore; });
+      const result = [];
+      let i = 1;
+      while (map[`candidato_${i}_nome`]) {
+        result.push({
+          id:     String(i),
+          nome:   map[`candidato_${i}_nome`],
+          colore: map[`candidato_${i}_colore`] || PALETTE_DEFAULT[(i-1) % PALETTE_DEFAULT.length],
+        });
+        i++;
+      }
+      return result;
+    }
+
+    // ── Barre risultato complessivo ──────────────────────
+    function renderTotale(candidates, voti) {
+      const totaliCandidato = {};
+      let totaleAssoluto = 0;
+
+      candidates.forEach(c => { totaliCandidato[c.id] = 0; });
+      voti.forEach(r => {
+        candidates.forEach(c => {
+          const v = parseFloat(r[`voti_${c.id}`]) || 0;
+          totaliCandidato[c.id] += v;
+          totaleAssoluto += v;
+        });
+      });
+
+      // ordina per voti decrescenti
+      const ordinati = [...candidates].sort((a, b) => totaliCandidato[b.id] - totaliCandidato[a.id]);
+      const maxVoti  = totaliCandidato[ordinati[0].id];
+
+      const wrap = document.getElementById("totale-bars");
+      wrap.innerHTML = ordinati.map(c => {
+        const v    = totaliCandidato[c.id];
+        const perc = totaleAssoluto > 0 ? ((v / totaleAssoluto) * 100).toFixed(1) : 0;
+        const w    = maxVoti > 0 ? ((v / maxVoti) * 100).toFixed(1) : 0;
+        return `
+          <div class="totale-bar-wrap">
+            <div class="totale-bar-label">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c.colore};margin-right:6px;vertical-align:middle"></span>
+              ${c.nome}
+            </div>
+            <div class="totale-bar-outer">
+              <div class="totale-bar-inner" style="width:${w}%;background:${c.colore}"></div>
+            </div>
+            <div class="totale-bar-perc" style="color:${c.colore}">${perc}%</div>
+            <div style="min-width:60px; font-size:.8rem; color:var(--color-muted)">${v.toLocaleString("it-IT")} voti</div>
+          </div>`;
+      }).join("");
+
+      return totaliCandidato;
+    }
+
+    // ── Bottoni candidato ────────────────────────────────
+    function buildCandidateButtons(candidates, onSelect) {
+      const wrap = document.getElementById("candidate-buttons");
+      wrap.innerHTML = "";
+      candidates.forEach((c, i) => {
+        const btn = document.createElement("button");
+        btn.className = "candidate-btn";
+        btn.innerHTML = `<span class="dot" style="background:${c.colore}"></span>${c.nome}`;
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".candidate-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          onSelect(c, i);
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    // ── Tabelle top/bottom sezioni ───────────────────────
+    function renderSezioniCandidato(candidato, voti, sezioniMap, totaliPerSezione) {
+      const righe = voti.map(r => {
+        const sez    = r.sezione;
+        const v      = parseFloat(r[`voti_${candidato.id}`]) || 0;
+        const tot    = totaliPerSezione[sez] || 0;
+        const perc   = tot > 0 ? (v / tot) * 100 : 0;
+        const quartiere = sezioniMap[sez] || "";
+        return { sez, v, perc, quartiere };
+      }).filter(r => r.tot !== 0);
+
+      const ordinati = [...righe].sort((a, b) => b.perc - a.perc);
+      const top    = ordinati.slice(0, 10);
+      const bottom = [...ordinati].reverse().slice(0, 10);
+
+      document.getElementById("title-top").textContent    = `Sezioni migliori — ${candidato.nome}`;
+      document.getElementById("title-bottom").textContent = `Sezioni peggiori — ${candidato.nome}`;
+
+      function renderRows(rows, tbody) {
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td style="font-weight:700">Sez. ${r.sez}</td>
+            <td class="rank-bar-wrap">
+              <span class="rank-bar" style="width:${r.perc.toFixed(0)}px; max-width:100px; background:${candidato.colore}"></span>
+            </td>
+            <td style="font-weight:700; color:${candidato.colore}; white-space:nowrap">${r.perc.toFixed(1)}%</td>
+            <td style="color:var(--color-muted); font-size:.82rem">${r.v} voti</td>
+          </tr>`).join("");
+      }
+
+      renderRows(top,    document.querySelector("#table-top tbody"));
+      renderRows(bottom, document.querySelector("#table-bottom tbody"));
+      document.getElementById("sezione-dettaglio").style.display = "";
+    }
+
+    // ── INIT ────────────────────────────────────────────
+    async function init() {
+      let candidates = [];
+
+      try {
+        const meta = await fetchCsv(sheetUrl("meta"));
+        candidates = parseCandidates(meta);
+      } catch(e) { console.warn("meta non disponibile"); }
+      if (candidates.length < 1) {
+        candidates = [{ id:"1", nome:"Candidato 1", colore: PALETTE_DEFAULT[0] }];
+      }
+
+      const voti = await fetchCsv(sheetUrl("voti"));
+
+      // totale voti per sezione (su tutti i candidati)
+      const totaliPerSezione = {};
+      voti.forEach(r => {
+        totaliPerSezione[r.sezione] = candidates.reduce(
+          (sum, c) => sum + (parseFloat(r[`voti_${c.id}`]) || 0), 0
+        );
+      });
+
+      const totaliCandidato = renderTotale(candidates, voti);
+
+      buildCandidateButtons(candidates, (candidato) => {
+        renderSezioniCandidato(candidato, voti, {}, totaliPerSezione);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
