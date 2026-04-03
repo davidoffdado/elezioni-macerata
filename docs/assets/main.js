@@ -351,7 +351,7 @@ async function init() {
       btn.addEventListener("click", () => {
         currentMode = btn.dataset.mode;
         document.querySelectorAll("[data-mode]").forEach(b => b.className = "map-btn");
-        btn.classList.add(`active-${currentMode}`);
+        btn.classList.add("active");
 
         // Mostra il selettore pertinente alla modalità attiva
         const selDuello  = document.getElementById("duello-selector");
@@ -365,7 +365,7 @@ async function init() {
     });
 
     // Stato iniziale pulsanti
-    document.querySelector('[data-mode="duello"]')?.classList.add("active-duello");
+    document.querySelector('[data-mode="duello"]')?.classList.add("active");
 
   } catch (err) {
     console.error("Errore nel caricamento dati:", err);
