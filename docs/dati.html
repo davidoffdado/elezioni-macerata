@@ -81,10 +81,16 @@
           <div class="card-title">Scarica i dati</div>
           <ul class="source-list">
             <li>
-              <strong>Google Sheet — voti e affluenza per sezione</strong>
+              <strong>Voti per sezione (CSV)</strong>
               <span>
-                <a href="#" id="link-sheet" target="_blank">Apri il foglio</a>
-                &mdash; aggiornato con i dati ufficiali
+                <a id="link-csv-voti" href="#" target="_blank" download>Scarica voti.csv</a>
+                &mdash; risultati per sezione, aggiornati in tempo reale dal foglio di lavoro
+              </span>
+            </li>
+            <li>
+              <strong>Affluenza per sezione (CSV)</strong>
+              <span>
+                <a id="link-csv-affluenza" href="#" target="_blank" download>Scarica affluenza.csv</a>
               </span>
             </li>
             <li>
@@ -106,8 +112,8 @@
             <li>
               <strong>Codice sorgente completo</strong>
               <span>
-                <a href="https://github.com/davidoffdado" target="_blank">
-                  github.com/davidoffdado
+                <a href="https://github.com/davidoffdado/elezioni-macerata/tree/master" target="_blank">
+                  github.com/davidoffdado/elezioni-macerata
                 </a>
                 &mdash; pipeline Python + sito web
               </span>
@@ -139,8 +145,9 @@
 
   <script>
     const PUBLISHED_ID = "2PACX-1vSXkyX7vkmpegphAnR6HxPimNMoLBtH3rixk7Lyn3jZPHWH468lUxpbXBZQVC3zr3HduLNMVgxDLcVs";
-    document.getElementById("link-sheet").href =
-      `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub`;
+    const base = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=`;
+    document.getElementById("link-csv-voti").href      = base + "1712458015";
+    document.getElementById("link-csv-affluenza").href = base + "683200541";
   </script>
 </body>
 </html>
