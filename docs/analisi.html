@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elezioni Macerata — Analisi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span class="navbar-brand">Elezioni <span>Macerata</span></span>
+      <ul class="navbar-links">
+        <li><a href="index.html"      >Mappa</a></li>
+        <li><a href="analisi.html"    class="active">Analisi</a></li>
+        <li><a href="metodologia.html">Metodologia</a></li>
+        <li><a href="dati.html"       >Dati</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div class="page-tag">Analisi dei risultati</div>
+      <h1 class="page-title">Voti e affluenza sezione per sezione</h1>
+      <p class="page-subtitle">
+        Distribuzione geografica del voto nelle 44 sezioni elettorali di Macerata.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- Grafico tutti i candidati -->
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Voti per sezione — tutti i candidati</div>
+          <div class="chart-container">
+            <canvas id="chart-voti"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafico duello con selettore -->
+      <div class="section">
+        <div class="card">
+          <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            <div class="card-title" style="margin:0">Duello sezione per sezione</div>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto;">
+              <select id="duello-a" class="cand-select"></select>
+              <span style="font-size:.8rem; font-weight:700; color:#999">vs</span>
+              <select id="duello-b" class="cand-select"></select>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-duello"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Affluenza per sezione</div>
+          <div class="chart-container">
+            <canvas id="chart-affluenza"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabella dettaglio -->
+      <div class="section">
+        <div class="card">
+          <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            <div class="card-title" style="margin:0">Dettaglio per sezione</div>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto;">
+              <select id="tab-a" class="cand-select"></select>
+              <span style="font-size:.8rem; font-weight:700; color:#999">vs</span>
+              <select id="tab-b" class="cand-select"></select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead id="tabella-head"></thead>
+              <tbody id="tabella-body">
+                <tr><td colspan="4" style="color:var(--color-muted)">Caricamento dati...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Dati: <a href="dati.html">fonti e licenze</a> &mdash;
+      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    const PUBLISHED_ID = "2PACX-1vSXkyX7vkmpegphAnR6HxPimNMoLBtH3rixk7Lyn3jZPHWH468lUxpbXBZQVC3zr3HduLNMVgxDLcVs";
+    const SHEET_GIDS = {
+      meta:      "0",
+      voti:      "1712458015",
+      affluenza: "683200541",
+    };
+    const PALETTE_DEFAULT = [
+      "#c0392b","#2563a8","#27ae60","#e67e22","#8e44ad",
+      "#16a085","#d35400","#2980b9","#c0392b","#7f8c8d",
+    ];
+
+    function sheetUrl(name) {
+      return `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=${SHEET_GIDS[name]}`;
+    }
+
+    async function fetchCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, "").trim());
+      return lines.slice(1).map(line => {
+        const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+        const row = {};
+        headers.forEach((h, i) => { row[h] = (cols[i] || "").replace(/^"|"$/g, "").trim(); });
+        return row;
+      });
+    }
+
+    function parseCandidates(metaRows) {
+      const map = {};
+      metaRows.forEach(r => { map[r.chiave] = r.valore; });
+      const result = [];
+      let i = 1;
+      while (map[`candidato_${i}_nome`]) {
+        result.push({
+          id:     String(i),
+          nome:   map[`candidato_${i}_nome`],
+          colore: map[`candidato_${i}_colore`] || PALETTE_DEFAULT[(i-1) % PALETTE_DEFAULT.length],
+        });
+        i++;
+      }
+      return result;
+    }
+
+    function fillSelect(selEl, candidates, defaultIdx) {
+      selEl.innerHTML = "";
+      candidates.forEach((c, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = c.nome;
+        selEl.appendChild(opt);
+      });
+      selEl.value = defaultIdx;
+    }
+
+    let chartDuello = null;
+
+    function renderDuello(candidates, voti, affMap, idxA, idxB) {
+      const cA = candidates[idxA], cB = candidates[idxB];
+      const sezioni = voti.map(r => "Sez. " + r.sezione);
+      const vA = voti.map(r => parseFloat(r[`voti_${cA.id}`]) || 0);
+      const vB = voti.map(r => parseFloat(r[`voti_${cB.id}`]) || 0);
+
+      if (chartDuello) chartDuello.destroy();
+      chartDuello = new Chart(document.getElementById("chart-duello"), {
+        type: "bar",
+        data: {
+          labels: sezioni,
+          datasets: [
+            { label: cA.nome, data: vA, backgroundColor: cA.colore + "cc" },
+            { label: cB.nome, data: vB, backgroundColor: cB.colore + "cc" },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "top" } },
+          scales: { x: { stacked: false }, y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function renderTabella(candidates, voti, affMap, idxA, idxB) {
+      const cA = candidates[idxA], cB = candidates[idxB];
+      const thead = document.getElementById("tabella-head");
+      thead.innerHTML = `<tr>
+        <th>Sezione</th>
+        <th style="color:${cA.colore}">${cA.nome}</th>
+        <th style="color:${cB.colore}">${cB.nome}</th>
+        <th>Affluenza</th>
+      </tr>`;
+
+      const tbody = document.getElementById("tabella-body");
+      tbody.innerHTML = voti.map(r => {
+        const vA = parseFloat(r[`voti_${cA.id}`]) || 0;
+        const vB = parseFloat(r[`voti_${cB.id}`]) || 0;
+        const tot = vA + vB;
+        const pA  = tot > 0 ? ((vA/tot)*100).toFixed(1) : "—";
+        const pB  = tot > 0 ? ((vB/tot)*100).toFixed(1) : "—";
+        const aff = affMap[r.sezione] != null ? (affMap[r.sezione]*100).toFixed(1) + "%" : "—";
+        return `<tr>
+          <td><strong>Sez. ${r.sezione}</strong></td>
+          <td>
+            <span class="bar-inline" style="width:${pA !== "—" ? Math.round(pA) : 0}px;background:${cA.colore}"></span>
+            ${pA !== "—" ? pA + "%" : "—"}
+          </td>
+          <td>
+            <span class="bar-inline" style="width:${pB !== "—" ? Math.round(pB) : 0}px;background:${cB.colore}"></span>
+            ${pB !== "—" ? pB + "%" : "—"}
+          </td>
+          <td>${aff}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    async function init() {
+      let candidates = [];
+
+      try {
+        const meta = await fetchCsv(sheetUrl("meta"));
+        candidates = parseCandidates(meta);
+      } catch(e) { console.warn("meta non disponibile"); }
+      if (candidates.length < 2) {
+        candidates = [
+          { id:"1", nome:"Candidato 1", colore: PALETTE_DEFAULT[0] },
+          { id:"2", nome:"Candidato 2", colore: PALETTE_DEFAULT[1] },
+        ];
+      }
+
+      const [voti, affluenza] = await Promise.all([
+        fetchCsv(sheetUrl("voti")),
+        fetchCsv(sheetUrl("affluenza")),
+      ]);
+
+      const affMap = {};
+      affluenza.forEach(r => { affMap[r.sezione] = parseFloat(r.affluenza) || 0; });
+
+      const sezioni = voti.map(r => "Sez. " + r.sezione);
+      const aff = voti.map(r => (affMap[r.sezione] || 0) * 100);
+
+      // Grafico tutti i candidati
+      new Chart(document.getElementById("chart-voti"), {
+        type: "bar",
+        data: {
+          labels: sezioni,
+          datasets: candidates.map(c => ({
+            label: c.nome,
+            data:  voti.map(r => parseFloat(r[`voti_${c.id}`]) || 0),
+            backgroundColor: c.colore + "cc",
+          }))
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "top" } },
+          scales: { x: { stacked: false }, y: { beginAtZero: true } }
+        }
+      });
+
+      // Grafico affluenza
+      new Chart(document.getElementById("chart-affluenza"), {
+        type: "bar",
+        data: {
+          labels: sezioni,
+          datasets: [{ label: "Affluenza %", data: aff, backgroundColor: "#2563a8aa" }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, max: 100 } }
+        }
+      });
+
+      // Popola selettori duello e tabella
+      const dA = document.getElementById("duello-a");
+      const dB = document.getElementById("duello-b");
+      const tA = document.getElementById("tab-a");
+      const tB = document.getElementById("tab-b");
+      fillSelect(dA, candidates, 0); fillSelect(dB, candidates, 1);
+      fillSelect(tA, candidates, 0); fillSelect(tB, candidates, 1);
+
+      renderDuello(candidates, voti, affMap, 0, 1);
+      renderTabella(candidates, voti, affMap, 0, 1);
+
+      function onDuelloChange() {
+        let a = parseInt(dA.value), b = parseInt(dB.value);
+        if (a === b) { b = a === 0 ? 1 : 0; dB.value = b; }
+        renderDuello(candidates, voti, affMap, a, b);
+      }
+      function onTabellaChange() {
+        let a = parseInt(tA.value), b = parseInt(tB.value);
+        if (a === b) { b = a === 0 ? 1 : 0; tB.value = b; }
+        renderTabella(candidates, voti, affMap, a, b);
+      }
+
+      dA.addEventListener("change", onDuelloChange);
+      dB.addEventListener("change", onDuelloChange);
+      tA.addEventListener("change", onTabellaChange);
+      tB.addEventListener("change", onTabellaChange);
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>

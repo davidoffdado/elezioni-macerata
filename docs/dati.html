@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elezioni Macerata — Dati</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    .source-list { list-style: none; display: flex; flex-direction: column; gap: .75rem; }
+    .source-list li {
+      padding: .75rem 1rem;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: .9rem;
+    }
+    .source-list li strong { display: block; margin-bottom: .2rem; }
+    .source-list li span   { color: var(--color-muted); font-size: .82rem; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span class="navbar-brand">Elezioni <span>Macerata</span></span>
+      <ul class="navbar-links">
+        <li><a href="index.html"      >Mappa</a></li>
+        <li><a href="analisi.html"    >Analisi</a></li>
+        <li><a href="metodologia.html">Metodologia</a></li>
+        <li><a href="dati.html"       class="active">Dati</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div class="page-tag">Trasparenza e riproducibilità</div>
+      <h1 class="page-title">Dati e codice sorgente</h1>
+      <p class="page-subtitle">
+        Tutte le fonti usate in questo progetto sono pubbliche e liberamente scaricabili.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Fonti dei dati</div>
+          <ul class="source-list">
+            <li>
+              <strong>Risultati elettorali per sezione</strong>
+              <span>Ministero dell'Interno — Eligendo / Comune di Macerata</span>
+            </li>
+            <li>
+              <strong>Viario elettorale (indirizzi seggi)</strong>
+              <span>Comune di Macerata — dati aperti</span>
+            </li>
+            <li>
+              <strong>Confine comunale</strong>
+              <span>ISTAT — Basi territoriali, licenza CC-BY</span>
+            </li>
+            <li>
+              <strong>Edifici e strade</strong>
+              <span>OpenStreetMap contributors, licenza ODbL</span>
+            </li>
+            <li>
+              <strong>Tile mappa</strong>
+              <span>CartoDB Positron — © CARTO, © OpenStreetMap contributors</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Scarica i dati</div>
+          <ul class="source-list">
+            <li>
+              <strong>Google Sheet — voti e affluenza per sezione</strong>
+              <span>
+                <a href="#" id="link-sheet" target="_blank">Apri il foglio</a>
+                &mdash; aggiornato con i dati ufficiali
+              </span>
+            </li>
+            <li>
+              <strong>GeoJSON edifici con sezione assegnata</strong>
+              <span>
+                <a href="geojson/edifici_colorabili_voti.geojson" download>
+                  edifici_colorabili_voti.geojson
+                </a>
+              </span>
+            </li>
+            <li>
+              <strong>GeoJSON poligoni di Voronoi</strong>
+              <span>
+                <a href="geojson/voronoi_per_sezione.geojson" download>
+                  voronoi_per_sezione.geojson
+                </a>
+              </span>
+            </li>
+            <li>
+              <strong>Codice sorgente completo</strong>
+              <span>
+                <a href="https://github.com/davidoffdado" target="_blank">
+                  github.com/davidoffdado
+                </a>
+                &mdash; pipeline Python + sito web
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Licenza</div>
+          <p style="font-size:.9rem; color:var(--color-muted); line-height:1.7">
+            Il codice di questo progetto è rilasciato sotto licenza
+            <strong>MIT</strong>. I dati elettorali sono di pubblico dominio.
+            I dati geografici derivati da OSM sono soggetti alla licenza
+            <strong>ODbL</strong>.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+    </p>
+  </footer>
+
+  <script>
+    const PUBLISHED_ID = "2PACX-1vSXkyX7vkmpegphAnR6HxPimNMoLBtH3rixk7Lyn3jZPHWH468lUxpbXBZQVC3zr3HduLNMVgxDLcVs";
+    document.getElementById("link-sheet").href =
+      `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub`;
+  </script>
+</body>
+</html>

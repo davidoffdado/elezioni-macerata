@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elezioni Macerata — Metodologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    .steps { display: flex; flex-direction: column; gap: 1.5rem; }
+    .step  { display: flex; gap: 1.25rem; }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--color-nav-bg);
+      color: #fff;
+      font-size: .85rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; }
+    .step-body p  { font-size: .9rem; color: var(--color-muted); }
+    .step-body code {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 3px;
+      padding: 0 .3em;
+      font-size: .85em;
+    }
+    .prose { font-size: .95rem; line-height: 1.8; max-width: 720px; }
+    .prose + .prose { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span class="navbar-brand">Elezioni <span>Macerata</span></span>
+      <ul class="navbar-links">
+        <li><a href="index.html"      >Mappa</a></li>
+        <li><a href="analisi.html"    >Analisi</a></li>
+        <li><a href="metodologia.html" class="active">Metodologia</a></li>
+        <li><a href="dati.html"       >Dati</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div class="page-tag">Come abbiamo costruito i dati</div>
+      <h1 class="page-title">Metodologia</h1>
+      <p class="page-subtitle">
+        Dalla lista degli indirizzi dei seggi fino alla mappa interattiva:
+        descrizione del processo tecnico passo per passo.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Il problema</div>
+          <p class="prose">
+            I risultati elettorali italiani sono pubblicati per <strong>sezione</strong>,
+            non per indirizzo. Per mostrare come ha votato ogni quartiere — o addirittura
+            ogni edificio — occorre risolvere un problema geografico: a quale sezione
+            appartiene ogni edificio della città?
+          </p>
+          <p class="prose">
+            La soluzione che abbiamo adottato si basa sui <strong>poligoni di Voronoi</strong>:
+            dato l'elenco dei seggi geocodificati, ogni edificio viene assegnato alla sezione
+            il cui seggio è più vicino in linea d'aria.
+          </p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Pipeline di elaborazione</div>
+          <div class="steps">
+
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <h3>Geocodifica dei seggi</h3>
+                <p>
+                  Partendo dal viario elettorale ufficiale del Comune di Macerata,
+                  abbiamo geocodificato gli indirizzi di tutti i seggi usando
+                  <strong>Nominatim / OpenStreetMap</strong> tramite il modulo
+                  <code>geopy</code>. I punti non trovati automaticamente sono stati
+                  verificati manualmente su Google Maps.
+                  Output: <code>final_data.xlsx</code> (sezione, lat, lon).
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <h3>Poligoni di Voronoi</h3>
+                <p>
+                  Con <code>voronoi.py</code> (shapely + geopandas) abbiamo generato
+                  i poligoni di Voronoi a partire dai punti seggio, ritagliandoli sul
+                  confine comunale di Macerata. Il risultato è un GeoJSON con un poligono
+                  per sezione. Output: <code>voronoi_per_sezione.geojson</code>.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <h3>Assegnazione edifici → sezioni</h3>
+                <p>
+                  Gli edifici di OpenStreetMap (scaricati via Overpass API) sono stati
+                  spazialmente joinati con i poligoni di Voronoi: ogni edificio eredita
+                  il numero di sezione del poligono che lo contiene.
+                  Output: <code>edifici_colorabili_voti.geojson</code>.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">4</div>
+              <div class="step-body">
+                <h3>Join con i dati elettorali</h3>
+                <p>
+                  I risultati di voto e l'affluenza per sezione (fonti: Ministero
+                  dell'Interno / Comune di Macerata) sono stati uniti al GeoJSON
+                  tramite <code>creazione_file_voti.py</code>, usando il numero di
+                  sezione come chiave.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-num">5</div>
+              <div class="step-body">
+                <h3>Pubblicazione sul sito</h3>
+                <p>
+                  Il GeoJSON finale è caricato su GitHub Pages. I dati tabellari
+                  (voti, affluenza) vivono in un <strong>Google Sheet pubblico</strong>
+                  da cui il browser li recupera in tempo reale via CSV. In questo modo
+                  aggiornare i dati non richiede di rigenerare il GeoJSON.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="card">
+          <div class="card-title">Limiti e avvertenze</div>
+          <p class="prose">
+            L'assegnazione per Voronoi è una <em>approssimazione</em>: in realtà le
+            circoscrizioni elettorali seguono confini stradali o topografici che non
+            sempre coincidono con la geometria del Voronoi. Per questo alcune
+            aree di confine potrebbero essere attribuite alla sezione sbagliata.
+          </p>
+          <p class="prose">
+            Gli edifici privi di geometria poligonale in OSM o situati fuori dal
+            confine comunale non compaiono nella mappa.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>
+      Dati: <a href="dati.html">fonti e licenze</a> &mdash;
+      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+    </p>
+  </footer>
+
+</body>
+</html>

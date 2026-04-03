@@ -1,0 +1,24 @@
+[out:json][timeout:90];
+
+rel["boundary"="administrative"]["name"="Macerata"]["admin_level"="8"];
+map_to_area -> .a;
+
+(
+  way["building"](area.a);
+  relation["building"](area.a);
+);
+
+out geom;
+
+
+
+[out:json][timeout:90];
+
+rel["boundary"="administrative"]["name"="Macerata"]["admin_level"="8"];
+map_to_area -> .a;
+
+(
+  way["highway"](area.a);
+  relation["highway"](area.a);
+);
+out geom;

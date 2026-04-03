@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elezioni Macerata — Mappa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <span class="navbar-brand">Elezioni <span>Macerata</span></span>
+      <ul class="navbar-links">
+        <li><a href="index.html"        class="active">Mappa</a></li>
+        <li><a href="analisi.html"               >Analisi</a></li>
+        <li><a href="metodologia.html"           >Metodologia</a></li>
+        <li><a href="dati.html"                  >Dati</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- INTESTAZIONE -->
+  <header class="page-header">
+    <div class="page-header-inner">
+      <div class="page-tag">Comune di Macerata</div>
+      <h1 class="page-title">Elezioni comunali — risultati per edificio</h1>
+      <p class="page-subtitle">
+        Ogni edificio è colorato in base al risultato della sezione elettorale
+        di appartenenza, calcolata tramite poligoni di Voronoi dai seggi geocodificati.
+      </p>
+    </div>
+  </header>
+
+  <!-- CONTENUTO -->
+  <main>
+    <div class="container">
+
+      <!-- STATISTICHE RIEPILOGO -->
+      <div class="section">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label" id="stat-nome-a">Candidato A</div>
+            <div class="stat-value red" id="stat-perc-a">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" id="stat-nome-b">Candidato B</div>
+            <div class="stat-value blue" id="stat-perc-b">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Affluenza media</div>
+            <div class="stat-value" id="stat-affluenza">—</div>
+          </div>
+        </div>
+
+        <!-- MAPPA -->
+        <div class="map-wrapper">
+          <div class="map-controls">
+            <button class="map-btn active-duello" data-mode="duello">Duello</button>
+            <button class="map-btn" data-mode="singolo">Candidato singolo</button>
+            <button class="map-btn" data-mode="affluenza">Affluenza</button>
+
+            <!-- Selettore duello (due candidati) -->
+            <div id="duello-selector" style="display:flex; align-items:center; gap:.5rem; margin-left:auto; flex-wrap:wrap;">
+              <select id="select-a" class="cand-select"></select>
+              <span style="font-size:.8rem; font-weight:700; color:#999">vs</span>
+              <select id="select-b" class="cand-select"></select>
+            </div>
+
+            <!-- Selettore singolo (nascosto di default) -->
+            <div id="singolo-selector" style="display:none; align-items:center; gap:.5rem; margin-left:auto;">
+              <select id="select-single" class="cand-select"></select>
+            </div>
+          </div>
+
+          <div id="map"></div>
+
+          <!-- Legenda duello -->
+          <div class="legend" id="legend-duello">
+            <span id="leg-nome-b" style="font-weight:600">Candidato B</span>
+            <div class="legend-gradient" style="height:10px;width:180px;border-radius:5px;background:linear-gradient(to right,#2563a8,#f5f5f5,#c0392b)"></div>
+            <span id="leg-nome-a" style="font-weight:600">Candidato A</span>
+          </div>
+
+          <!-- Legenda singolo (nascosta di default) -->
+          <div class="legend" id="legend-singolo" style="display:none">
+            <span style="color:var(--color-muted)">0%</span>
+            <div class="legend-gradient" style="height:10px;width:180px;border-radius:5px;background:linear-gradient(to right,#f5f5f5,#c0392b)"></div>
+            <span id="leg-nome-single" style="font-weight:600">Candidato</span>
+          </div>
+
+          <!-- Legenda affluenza (nascosta di default) -->
+          <div class="legend" id="legend-affluenza" style="display:none">
+            <span>Bassa affluenza</span>
+            <div class="legend-gradient affluenza"></div>
+            <span>Alta affluenza</span>
+          </div>
+
+          <!-- Errore caricamento -->
+          <div id="map-error" style="display:none; padding:1rem; color:#c0392b; font-size:.9rem;">
+            Impossibile caricare i dati. Verifica che il Google Sheet sia pubblicato
+            e che lo <code>SHEET_ID</code> in <code>main.js</code> sia corretto.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>
+      Dati: <a href="dati.html">fonti e licenze</a> &mdash;
+      Elaborazione: <a href="metodologia.html">metodologia</a> &mdash;
+      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+    </p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/main.js"></script>
+</body>
+</html>

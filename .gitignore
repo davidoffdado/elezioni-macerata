@@ -1,0 +1,14 @@
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# macOS
+.DS_Store
+
+# Excel temporanei
+~$*.xlsx
+~$*.xls

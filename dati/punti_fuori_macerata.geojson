@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "punti_fuori_macerata",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "obs": 470, "row_id": 234, "sezione": 14, "indirizzo_clean": "CONTRADA CERVARE", "query_geocode": "CONTRADA CERVARE, Macerata, MC, Italia", "from_civico": "all", "to_civico": "all", "civico": null, "lat": 43.31781, "lon": 13.52104 }, "geometry": { "type": "Point", "coordinates": [ 13.52104, 43.31781 ] } },
+{ "type": "Feature", "properties": { "obs": 1407, "row_id": 541, "sezione": 39, "indirizzo_clean": "CONTRADA SANTA MARIA IN SELVA", "query_geocode": "CONTRADA SANTA MARIA IN SELVA, Macerata, MC, Italia", "from_civico": "all", "to_civico": "all", "civico": null, "lat": 43.33453, "lon": 13.39424 }, "geometry": { "type": "Point", "coordinates": [ 13.39424, 43.33453 ] } }
+]
+}

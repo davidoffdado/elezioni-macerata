@@ -1,0 +1,329 @@
+/* =====================================================
+   MACERATA ELEZIONI — stile ispirato a cities.youtrend.it
+   ===================================================== */
+
+/* --- Reset & base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-bg:         #f7f7f5;
+  --color-surface:    #ffffff;
+  --color-border:     #e0dedd;
+  --color-text:       #1a1a1a;
+  --color-muted:      #666666;
+  --color-accent-a:   #c0392b;   /* candidato A — rosso */
+  --color-accent-b:   #2563a8;   /* candidato B — blu */
+  --color-nav-bg:     #1a1a2e;
+  --color-nav-text:   #ffffff;
+  --font-sans:        "Inter", system-ui, sans-serif;
+  --radius:           6px;
+  --shadow:           0 1px 4px rgba(0,0,0,.10);
+  --max-w:            1200px;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+a { color: var(--color-accent-b); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- Navbar --- */
+.navbar {
+  background: var(--color-nav-bg);
+  color: var(--color-nav-text);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 3px solid var(--color-accent-a);
+}
+
+.navbar-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-nav-text);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.navbar-brand span {
+  color: var(--color-accent-a);
+}
+
+.navbar-links {
+  display: flex;
+  gap: 0;
+  list-style: none;
+}
+
+.navbar-links a {
+  display: block;
+  padding: .35rem .9rem;
+  color: rgba(255,255,255,.75);
+  font-size: .88rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  transition: color .15s, background .15s;
+}
+
+.navbar-links a:hover,
+.navbar-links a.active {
+  color: #fff;
+  background: rgba(255,255,255,.1);
+  text-decoration: none;
+}
+
+/* --- Hero / intestazione pagina --- */
+.page-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+.page-header-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.page-tag {
+  display: inline-block;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-accent-a);
+  margin-bottom: .5rem;
+}
+
+.page-title {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: .5rem;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--color-muted);
+  max-width: 680px;
+}
+
+/* --- Layout contenuto --- */
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section { padding: 2rem 0; }
+.section + .section { border-top: 1px solid var(--color-border); }
+
+/* --- Card --- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: .75rem;
+}
+
+/* --- Stats row --- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--color-muted);
+  margin-bottom: .3rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-value.red  { color: var(--color-accent-a); }
+.stat-value.blue { color: var(--color-accent-b); }
+
+/* --- Mappa --- */
+.map-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+#map {
+  width: 100%;
+  height: 580px;
+}
+
+.map-controls {
+  display: flex;
+  gap: .5rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.map-btn {
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  font-weight: 600;
+  padding: .35rem .85rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.map-btn:hover { border-color: #aaa; }
+.map-btn.active-duello  { background: #fde8e8; border-color: var(--color-accent-a); color: var(--color-accent-a); }
+.map-btn.active-aff     { background: #e8f0fb; border-color: var(--color-accent-b); color: var(--color-accent-b); }
+.map-btn.active-sez     { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+
+/* --- Selettore candidati duello --- */
+.cand-select {
+  font-family: var(--font-sans);
+  font-size: .82rem;
+  font-weight: 600;
+  padding: .3rem .6rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  max-width: 180px;
+}
+.cand-select:focus {
+  outline: none;
+  border-color: #aaa;
+}
+
+/* --- Legenda duello --- */
+.legend {
+  padding: .75rem 1rem;
+  font-size: .8rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.legend-gradient {
+  height: 10px;
+  width: 180px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.legend-gradient.duello {
+  background: linear-gradient(to right, #2166ff, #9ec9ff, #ffffff, #ffb3b3, #ff1f1f);
+}
+
+.legend-gradient.affluenza {
+  background: linear-gradient(to right, #d73027, #fee08b, #1a9850);
+}
+
+/* --- Grafico barre --- */
+.chart-container {
+  position: relative;
+  height: 320px;
+}
+
+/* --- Tabella --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .85rem;
+}
+
+.data-table th {
+  text-align: left;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--color-muted);
+  border-bottom: 2px solid var(--color-border);
+  padding: .5rem .75rem;
+}
+
+.data-table td {
+  padding: .45rem .75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--color-bg); }
+
+.bar-inline {
+  display: inline-block;
+  height: 8px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* --- Footer --- */
+footer {
+  background: var(--color-nav-bg);
+  color: rgba(255,255,255,.6);
+  font-size: .8rem;
+  padding: 1.5rem;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+footer a { color: rgba(255,255,255,.8); }
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .page-title { font-size: 1.4rem; }
+  #map { height: 400px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
