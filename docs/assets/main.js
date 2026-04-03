@@ -30,6 +30,12 @@ let currentMode = "duello";
 let map, geojsonLayer;
 let _geojson, _votiMap, _affluenzaMap;
 
+// Highlight sezione
+let _selectedSection = null;
+let _hoveredSection  = null;
+let _hoverTimeout    = null;
+let _sezioneIndex    = {};   // sezione → [layer, ...]
+
 // ─── UTILS ────────────────────────────────────────────
 function sheetCsvUrl(gid) {
   return `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=${gid}`;
@@ -122,9 +128,39 @@ function initMap() {
   }).addTo(map);
 }
 
+// ─── HIGHLIGHT SEZIONE ────────────────────────────────
+function highlightSection(sez) {
+  (_sezioneIndex[sez] || []).forEach(l => {
+    l.setStyle({ color: "#ffffff", weight: 3, fillOpacity: 0.95 });
+    l.bringToFront();
+  });
+}
+
+function unhighlightSection(sez) {
+  (_sezioneIndex[sez] || []).forEach(l => geojsonLayer.resetStyle(l));
+}
+
+function toggleSection(sez) {
+  if (_selectedSection === sez) {
+    _selectedSection = null;
+    unhighlightSection(sez);
+  } else {
+    if (_selectedSection) unhighlightSection(_selectedSection);
+    _selectedSection = sez;
+    highlightSection(sez);
+  }
+}
+
+// ─── LAYER ────────────────────────────────────────────
 function renderLayer() {
   if (!_geojson) return;
   if (geojsonLayer) geojsonLayer.remove();
+
+  // reset stato highlight al cambio di layer
+  _selectedSection = null;
+  _hoveredSection  = null;
+  clearTimeout(_hoverTimeout);
+  _sezioneIndex    = {};
 
   const cA      = candidates[selA];
   const cB      = candidates[selB];
@@ -166,6 +202,10 @@ function renderLayer() {
       const a   = _affluenzaMap[sez] || {};
       const aff = a.affluenza ? parseFloat(a.affluenza).toFixed(1) + "%" : "—";
 
+      // Costruisce indice sezione → layers
+      if (!_sezioneIndex[sez]) _sezioneIndex[sez] = [];
+      _sezioneIndex[sez].push(layer);
+
       let votiHtml = "";
       if (currentMode === "duello" && cA && cB) {
         const vA     = parseFloat(v[`voti_${cA.id}`]) || 0;
@@ -188,6 +228,30 @@ function renderLayer() {
         ${votiHtml}
         Affluenza: ${aff}
       `, { sticky: true });
+
+      // Hover: evidenzia tutti gli edifici della sezione
+      layer.on("mouseover", () => {
+        clearTimeout(_hoverTimeout);
+        if (_hoveredSection !== sez) {
+          if (_hoveredSection && _hoveredSection !== _selectedSection) {
+            unhighlightSection(_hoveredSection);
+          }
+          _hoveredSection = sez;
+        }
+        if (sez !== _selectedSection) highlightSection(sez);
+      });
+
+      layer.on("mouseout", () => {
+        _hoverTimeout = setTimeout(() => {
+          if (_hoveredSection === sez && sez !== _selectedSection) {
+            unhighlightSection(sez);
+            _hoveredSection = null;
+          }
+        }, 80);
+      });
+
+      // Click: fissa/rimuove l'evidenziazione
+      layer.on("click", () => toggleSection(sez));
     }
   }).addTo(map);
 
