@@ -40,8 +40,12 @@
       <div class="section">
         <div class="card">
           <div class="card-title">Voti per sezione — tutti i candidati</div>
-          <div class="chart-container">
-            <canvas id="chart-voti"></canvas>
+          <div class="chart-scroll-wrapper">
+            <div class="chart-scroll-inner">
+              <div class="chart-container">
+                <canvas id="chart-voti"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -51,14 +55,18 @@
         <div class="card">
           <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem;">
             <div class="card-title" style="margin:0">Duello sezione per sezione</div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto; flex-wrap:wrap;">
               <select id="duello-a" class="cand-select"></select>
               <span style="font-size:.8rem; font-weight:700; color:#999">vs</span>
               <select id="duello-b" class="cand-select"></select>
             </div>
           </div>
-          <div class="chart-container">
-            <canvas id="chart-duello"></canvas>
+          <div class="chart-scroll-wrapper">
+            <div class="chart-scroll-inner">
+              <div class="chart-container">
+                <canvas id="chart-duello"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -66,8 +74,12 @@
       <div class="section">
         <div class="card">
           <div class="card-title">Affluenza per sezione</div>
-          <div class="chart-container">
-            <canvas id="chart-affluenza"></canvas>
+          <div class="chart-scroll-wrapper">
+            <div class="chart-scroll-inner">
+              <div class="chart-container">
+                <canvas id="chart-affluenza"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -77,7 +89,7 @@
         <div class="card">
           <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:.75rem;">
             <div class="card-title" style="margin:0">Dettaglio per sezione</div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-left:auto; flex-wrap:wrap;">
               <select id="tab-a" class="cand-select"></select>
               <span style="font-size:.8rem; font-weight:700; color:#999">vs</span>
               <select id="tab-b" class="cand-select"></select>
