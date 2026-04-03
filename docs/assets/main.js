@@ -39,6 +39,7 @@ let _sezioneIndex    = {};   // sezione → [layer, ...]
 // Tooltip globale unico
 let _tooltip          = null;
 let _tooltipPermanent = false;  // true se mostrato da click (mobile), false se da hover
+let _layerJustClicked = false;  // blocca il map click immediatamente dopo un layer click
 
 // ─── UTILS ────────────────────────────────────────────
 function sheetCsvUrl(gid) {
@@ -131,8 +132,8 @@ function initMap() {
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
 
-  // Tap su spazio vuoto: chiudi tutto
-  map.on("click", () => closeInfoPanel());
+  // Tap su spazio vuoto: chiudi tutto (ignorato se appena cliccato un layer)
+  map.on("click", () => { if (!_layerJustClicked) closeInfoPanel(); });
 
   // Pulsante × del panel
   document.getElementById("map-info-close")?.addEventListener("click", closeInfoPanel);
@@ -321,6 +322,8 @@ function renderLayer() {
       // ── Click/tap: panel info + tooltip fisso (desktop) ──
       layer.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
+        _layerJustClicked = true;
+        setTimeout(() => { _layerJustClicked = false; }, 100);
         const wasSameSection = _selectedSection === sez;
         toggleSection(sez);
         if (wasSameSection) {
