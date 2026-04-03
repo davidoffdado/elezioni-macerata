@@ -129,6 +129,15 @@ function initMap() {
     attribution: '&copy; <a href="https://carto.com/">CartoDB</a>',
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
+
+  // Tap su spazio vuoto: chiudi tooltip e deseleziona sezione
+  map.on("click", () => {
+    if (_tooltip) _tooltip.remove();
+    if (_selectedSection) {
+      unhighlightSection(_selectedSection);
+      _selectedSection = null;
+    }
+  });
 }
 
 // ─── HIGHLIGHT SEZIONE ────────────────────────────────
@@ -236,10 +245,9 @@ function renderLayer() {
         Affluenza: ${aff}
       `;
 
-      // Tooltip globale: un solo tooltip alla volta
+      // ── Desktop: hover mostra/nasconde tooltip e highlight ──
       layer.on("mouseover", (e) => {
         _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
-
         clearTimeout(_hoverTimeout);
         if (_hoveredSection !== sez) {
           if (_hoveredSection && _hoveredSection !== _selectedSection) {
@@ -264,8 +272,12 @@ function renderLayer() {
         }, 80);
       });
 
-      // Click: fissa/rimuove l'evidenziazione
-      layer.on("click", () => toggleSection(sez));
+      // ── Click/tap: mostra tooltip + fissa highlight (mobile e desktop) ──
+      layer.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+        toggleSection(sez);
+      });
     }
   }).addTo(map);
 
