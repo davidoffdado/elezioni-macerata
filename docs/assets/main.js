@@ -131,15 +131,53 @@ function initMap() {
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
 
-  // Tap su spazio vuoto: chiudi tooltip fisso e deseleziona sezione
-  map.on("click", () => {
-    _tooltipPermanent = false;
-    if (_tooltip) _tooltip.remove();
-    if (_selectedSection) {
-      unhighlightSection(_selectedSection);
-      _selectedSection = null;
-    }
-  });
+  // Tap su spazio vuoto: chiudi tutto
+  map.on("click", () => closeInfoPanel());
+
+  // Pulsante × del panel
+  document.getElementById("map-info-close")?.addEventListener("click", closeInfoPanel);
+}
+
+// ─── PANEL INFO SEZIONE ───────────────────────────────
+function updateInfoPanel(sez) {
+  const panel   = document.getElementById("map-info-panel");
+  const content = document.getElementById("map-info-content");
+  if (!panel || !content) return;
+
+  const v       = _votiMap[sez]      || {};
+  const a       = _affluenzaMap[sez] || {};
+  const cA      = candidates[selA];
+  const cB      = candidates[selB];
+  const cSingle = candidates[selSingle];
+  const aff     = a.affluenza ? parseFloat(a.affluenza).toFixed(1) + "%" : "—";
+
+  let rows = "";
+  if (currentMode === "duello" && cA && cB) {
+    const vA     = parseFloat(v[`voti_${cA.id}`]) || 0;
+    const vB     = parseFloat(v[`voti_${cB.id}`]) || 0;
+    const totale = candidates.reduce((sum, c) => sum + (parseFloat(v[`voti_${c.id}`]) || 0), 0);
+    const pA     = totale > 0 ? ((vA / totale) * 100).toFixed(1) + "%" : "—";
+    const pB     = totale > 0 ? ((vB / totale) * 100).toFixed(1) + "%" : "—";
+    rows += `<div class="info-panel-row"><span class="dot" style="background:${cA.colore}"></span><span class="label">${cA.nome}</span><span class="value" style="color:${cA.colore}">${pA}</span></div>`;
+    rows += `<div class="info-panel-row"><span class="dot" style="background:${cB.colore}"></span><span class="label">${cB.nome}</span><span class="value" style="color:${cB.colore}">${pB}</span></div>`;
+  } else if (currentMode === "singolo" && cSingle) {
+    const vc     = parseFloat(v[`voti_${cSingle.id}`]) || 0;
+    const totale = candidates.reduce((sum, c) => sum + (parseFloat(v[`voti_${c.id}`]) || 0), 0);
+    const perc   = totale > 0 ? ((vc / totale) * 100).toFixed(1) + "%" : "—";
+    rows += `<div class="info-panel-row"><span class="dot" style="background:${cSingle.colore}"></span><span class="label">${cSingle.nome}</span><span class="value" style="color:${cSingle.colore}">${perc}</span></div>`;
+  }
+  rows += `<div class="info-panel-row"><span class="label" style="color:var(--color-muted)">Affluenza</span><span class="value">${aff}</span></div>`;
+
+  content.innerHTML = `<div class="info-panel-title">Sezione ${sez}</div>${rows}`;
+  panel.style.display = "block";
+}
+
+function closeInfoPanel() {
+  const panel = document.getElementById("map-info-panel");
+  if (panel) panel.style.display = "none";
+  _tooltipPermanent = false;
+  if (_tooltip) _tooltip.remove();
+  if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; }
 }
 
 // ─── HIGHLIGHT SEZIONE ────────────────────────────────
@@ -176,10 +214,12 @@ function renderLayer() {
   clearTimeout(_hoverTimeout);
   _sezioneIndex = {};
 
-  // ricrea tooltip globale
+  // ricrea tooltip globale e nascondi panel
   if (_tooltip) _tooltip.remove();
   _tooltip          = L.tooltip({ sticky: false, opacity: 0.92 });
   _tooltipPermanent = false;
+  const _panel = document.getElementById("map-info-panel");
+  if (_panel) _panel.style.display = "none";
 
   const cA      = candidates[selA];
   const cB      = candidates[selB];
@@ -278,19 +318,22 @@ function renderLayer() {
         }, 80);
       });
 
-      // ── Click/tap: tooltip fisso + highlight (funziona su mobile e desktop) ──
+      // ── Click/tap: panel info + tooltip fisso (desktop) ──
       layer.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
         const wasSameSection = _selectedSection === sez;
         toggleSection(sez);
         if (wasSameSection) {
-          // deselezione: rimuovi tooltip fisso
-          _tooltip.remove();
           _tooltipPermanent = false;
+          _tooltip.remove();
+          const panel = document.getElementById("map-info-panel");
+          if (panel) panel.style.display = "none";
         } else {
-          // nuova sezione selezionata: fissa il tooltip
-          _tooltipPermanent = true;
-          _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+          updateInfoPanel(sez);
+          if (!L.Browser.touch) {
+            _tooltipPermanent = true;
+            _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+          }
         }
       });
     }
