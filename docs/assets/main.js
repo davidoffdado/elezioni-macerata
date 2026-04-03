@@ -165,11 +165,11 @@ function renderLayer() {
 
       let votiHtml = "";
       if (currentMode === "duello" && cA && cB) {
-        const vA  = parseFloat(v[`voti_${cA.id}`]) || 0;
-        const vB  = parseFloat(v[`voti_${cB.id}`]) || 0;
-        const tot = vA + vB;
-        const pA  = tot > 0 ? ((vA/tot)*100).toFixed(1) + "%" : "—";
-        const pB  = tot > 0 ? ((vB/tot)*100).toFixed(1) + "%" : "—";
+        const vA     = parseFloat(v[`voti_${cA.id}`]) || 0;
+        const vB     = parseFloat(v[`voti_${cB.id}`]) || 0;
+        const totale = candidates.reduce((sum, c) => sum + (parseFloat(v[`voti_${c.id}`]) || 0), 0);
+        const pA     = totale > 0 ? ((vA/totale)*100).toFixed(1) + "%" : "—";
+        const pB     = totale > 0 ? ((vB/totale)*100).toFixed(1) + "%" : "—";
         votiHtml = `
           <span style="color:${cA.colore}">&#9632; ${cA.nome}: ${pA}</span><br>
           <span style="color:${cB.colore}">&#9632; ${cB.nome}: ${pB}</span><br>`;
@@ -230,19 +230,19 @@ function updateStats() {
   const cA = candidates[selA];
   const cB = candidates[selB];
 
-  let totA = 0, totB = 0, totAff = 0, countAff = 0;
+  let totA = 0, totB = 0, totTutti = 0, totAff = 0, countAff = 0;
   Object.values(_votiMap).forEach(v => {
     if (cA) totA += parseFloat(v[`voti_${cA.id}`]) || 0;
     if (cB) totB += parseFloat(v[`voti_${cB.id}`]) || 0;
+    candidates.forEach(c => { totTutti += parseFloat(v[`voti_${c.id}`]) || 0; });
   });
   Object.values(_affluenzaMap).forEach(a => {
     const val = parseFloat(a.affluenza);
     if (!isNaN(val)) { totAff += val; countAff++; }
   });
 
-  const tot = totA + totB;
-  const pA  = tot > 0 ? ((totA/tot)*100).toFixed(1) + "%" : "—";
-  const pB  = tot > 0 ? ((totB/tot)*100).toFixed(1) + "%" : "—";
+  const pA = totTutti > 0 ? ((totA/totTutti)*100).toFixed(1) + "%" : "—";
+  const pB = totTutti > 0 ? ((totB/totTutti)*100).toFixed(1) + "%" : "—";
   const avg = countAff > 0 ? ((totAff/countAff)*100).toFixed(1) + "%" : "—";
 
   const el = id => document.getElementById(id);

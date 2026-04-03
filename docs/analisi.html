@@ -198,11 +198,11 @@
 
       const tbody = document.getElementById("tabella-body");
       tbody.innerHTML = voti.map(r => {
-        const vA = parseFloat(r[`voti_${cA.id}`]) || 0;
-        const vB = parseFloat(r[`voti_${cB.id}`]) || 0;
-        const tot = vA + vB;
-        const pA  = tot > 0 ? ((vA/tot)*100).toFixed(1) : "—";
-        const pB  = tot > 0 ? ((vB/tot)*100).toFixed(1) : "—";
+        const vA     = parseFloat(r[`voti_${cA.id}`]) || 0;
+        const vB     = parseFloat(r[`voti_${cB.id}`]) || 0;
+        const totale = candidates.reduce((sum, c) => sum + (parseFloat(r[`voti_${c.id}`]) || 0), 0);
+        const pA     = totale > 0 ? ((vA/totale)*100).toFixed(1) : "—";
+        const pB     = totale > 0 ? ((vB/totale)*100).toFixed(1) : "—";
         const aff = affMap[r.sezione] != null ? (affMap[r.sezione]*100).toFixed(1) + "%" : "—";
         return `<tr>
           <td><strong>Sez. ${r.sezione}</strong></td>
