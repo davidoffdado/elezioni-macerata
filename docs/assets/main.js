@@ -152,7 +152,7 @@ function renderLayer() {
         fillColor = colorSingolo(totale > 0 ? voti_c / totale : 0, cSingle.colore);
       } else if (currentMode === "affluenza") {
         const a = _affluenzaMap[sez] || {};
-        fillColor = colorAffluenza(parseFloat(a.affluenza));
+        fillColor = colorAffluenza(parseFloat(a.affluenza) / 100);
       }
 
       return { fillColor, color: "#888", weight: 0.2, fillOpacity: 0.82 };
@@ -161,7 +161,7 @@ function renderLayer() {
       const sez = String(feature.properties.sezione);
       const v   = _votiMap[sez]      || {};
       const a   = _affluenzaMap[sez] || {};
-      const aff = a.affluenza ? (parseFloat(a.affluenza) * 100).toFixed(1) + "%" : "—";
+      const aff = a.affluenza ? parseFloat(a.affluenza).toFixed(1) + "%" : "—";
 
       let votiHtml = "";
       if (currentMode === "duello" && cA && cB) {
@@ -241,9 +241,9 @@ function updateStats() {
     if (!isNaN(val)) { totAff += val; countAff++; }
   });
 
-  const pA = totTutti > 0 ? ((totA/totTutti)*100).toFixed(1) + "%" : "—";
-  const pB = totTutti > 0 ? ((totB/totTutti)*100).toFixed(1) + "%" : "—";
-  const avg = countAff > 0 ? ((totAff/countAff)*100).toFixed(1) + "%" : "—";
+  const pA  = totTutti > 0 ? ((totA/totTutti)*100).toFixed(1) + "%" : "—";
+  const pB  = totTutti > 0 ? ((totB/totTutti)*100).toFixed(1) + "%" : "—";
+  const avg = countAff > 0 ? (totAff/countAff).toFixed(1) + "%" : "—";
 
   const el = id => document.getElementById(id);
   if (el("stat-nome-a") && cA) {

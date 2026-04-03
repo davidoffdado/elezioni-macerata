@@ -203,7 +203,7 @@
         const totale = candidates.reduce((sum, c) => sum + (parseFloat(r[`voti_${c.id}`]) || 0), 0);
         const pA     = totale > 0 ? ((vA/totale)*100).toFixed(1) : "—";
         const pB     = totale > 0 ? ((vB/totale)*100).toFixed(1) : "—";
-        const aff = affMap[r.sezione] != null ? (affMap[r.sezione]*100).toFixed(1) + "%" : "—";
+        const aff = affMap[r.sezione] != null ? affMap[r.sezione].toFixed(1) + "%" : "—";
         return `<tr>
           <td><strong>Sez. ${r.sezione}</strong></td>
           <td>
@@ -239,10 +239,11 @@
       ]);
 
       const affMap = {};
+      // affluenza nel foglio è 0–100 (es. 67.2 = 67.2%)
       affluenza.forEach(r => { affMap[r.sezione] = parseFloat(r.affluenza) || 0; });
 
       const sezioni = voti.map(r => "Sez. " + r.sezione);
-      const aff = voti.map(r => (affMap[r.sezione] || 0) * 100);
+      const aff = voti.map(r => affMap[r.sezione] || 0);
 
       // Grafico tutti i candidati
       new Chart(document.getElementById("chart-voti"), {
