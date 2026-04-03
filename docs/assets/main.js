@@ -36,6 +36,9 @@ let _hoveredSection  = null;
 let _hoverTimeout    = null;
 let _sezioneIndex    = {};   // sezione → [layer, ...]
 
+// Tooltip globale unico
+let _tooltip = null;
+
 // ─── UTILS ────────────────────────────────────────────
 function sheetCsvUrl(gid) {
   return `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=${gid}`;
@@ -160,7 +163,11 @@ function renderLayer() {
   _selectedSection = null;
   _hoveredSection  = null;
   clearTimeout(_hoverTimeout);
-  _sezioneIndex    = {};
+  _sezioneIndex = {};
+
+  // ricrea tooltip globale
+  if (_tooltip) _tooltip.remove();
+  _tooltip = L.tooltip({ sticky: false, opacity: 0.92 });
 
   const cA      = candidates[selA];
   const cB      = candidates[selB];
@@ -223,14 +230,16 @@ function renderLayer() {
         votiHtml = `<span style="color:${cSingle.colore}">&#9632; ${cSingle.nome}: ${perc}</span><br>`;
       }
 
-      layer.bindTooltip(`
+      const tooltipContent = () => `
         <strong>Sezione ${sez}</strong><br>
         ${votiHtml}
         Affluenza: ${aff}
-      `, { sticky: true });
+      `;
 
-      // Hover: evidenzia tutti gli edifici della sezione
-      layer.on("mouseover", () => {
+      // Tooltip globale: un solo tooltip alla volta
+      layer.on("mouseover", (e) => {
+        _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+
         clearTimeout(_hoverTimeout);
         if (_hoveredSection !== sez) {
           if (_hoveredSection && _hoveredSection !== _selectedSection) {
@@ -241,7 +250,12 @@ function renderLayer() {
         if (sez !== _selectedSection) highlightSection(sez);
       });
 
+      layer.on("mousemove", (e) => {
+        _tooltip.setLatLng(e.latlng);
+      });
+
       layer.on("mouseout", () => {
+        _tooltip.remove();
         _hoverTimeout = setTimeout(() => {
           if (_hoveredSection === sez && sez !== _selectedSection) {
             unhighlightSection(sez);
