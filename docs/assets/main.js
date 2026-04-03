@@ -37,7 +37,8 @@ let _hoverTimeout    = null;
 let _sezioneIndex    = {};   // sezione → [layer, ...]
 
 // Tooltip globale unico
-let _tooltip = null;
+let _tooltip          = null;
+let _tooltipPermanent = false;  // true se mostrato da click (mobile), false se da hover
 
 // ─── UTILS ────────────────────────────────────────────
 function sheetCsvUrl(gid) {
@@ -130,8 +131,9 @@ function initMap() {
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
 
-  // Tap su spazio vuoto: chiudi tooltip e deseleziona sezione
+  // Tap su spazio vuoto: chiudi tooltip fisso e deseleziona sezione
   map.on("click", () => {
+    _tooltipPermanent = false;
     if (_tooltip) _tooltip.remove();
     if (_selectedSection) {
       unhighlightSection(_selectedSection);
@@ -176,7 +178,8 @@ function renderLayer() {
 
   // ricrea tooltip globale
   if (_tooltip) _tooltip.remove();
-  _tooltip = L.tooltip({ sticky: false, opacity: 0.92 });
+  _tooltip          = L.tooltip({ sticky: false, opacity: 0.92 });
+  _tooltipPermanent = false;
 
   const cA      = candidates[selA];
   const cB      = candidates[selB];
@@ -245,8 +248,9 @@ function renderLayer() {
         Affluenza: ${aff}
       `;
 
-      // ── Desktop: hover mostra/nasconde tooltip e highlight ──
+      // ── Desktop: hover mostra/nasconde tooltip ──
       layer.on("mouseover", (e) => {
+        if (_tooltipPermanent) return;
         _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
         clearTimeout(_hoverTimeout);
         if (_hoveredSection !== sez) {
@@ -259,10 +263,12 @@ function renderLayer() {
       });
 
       layer.on("mousemove", (e) => {
+        if (_tooltipPermanent) return;
         _tooltip.setLatLng(e.latlng);
       });
 
       layer.on("mouseout", () => {
+        if (_tooltipPermanent) return;
         _tooltip.remove();
         _hoverTimeout = setTimeout(() => {
           if (_hoveredSection === sez && sez !== _selectedSection) {
@@ -272,11 +278,20 @@ function renderLayer() {
         }, 80);
       });
 
-      // ── Click/tap: mostra tooltip + fissa highlight (mobile e desktop) ──
+      // ── Click/tap: tooltip fisso + highlight (funziona su mobile e desktop) ──
       layer.on("click", (e) => {
         L.DomEvent.stopPropagation(e);
-        _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+        const wasSameSection = _selectedSection === sez;
         toggleSection(sez);
+        if (wasSameSection) {
+          // deselezione: rimuovi tooltip fisso
+          _tooltip.remove();
+          _tooltipPermanent = false;
+        } else {
+          // nuova sezione selezionata: fissa il tooltip
+          _tooltipPermanent = true;
+          _tooltip.setLatLng(e.latlng).setContent(tooltipContent()).addTo(map);
+        }
       });
     }
   }).addTo(map);
