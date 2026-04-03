@@ -81,16 +81,10 @@
           <div class="card-title">Scarica i dati</div>
           <ul class="source-list">
             <li>
-              <strong>Voti per sezione (CSV)</strong>
+              <strong>Dati elettorali (CSV)</strong>
               <span>
-                <a id="link-csv-voti" href="#" target="_blank" download>Scarica voti.csv</a>
-                &mdash; risultati per sezione, aggiornati in tempo reale dal foglio di lavoro
-              </span>
-            </li>
-            <li>
-              <strong>Affluenza per sezione (CSV)</strong>
-              <span>
-                <a id="link-csv-affluenza" href="#" target="_blank" download>Scarica affluenza.csv</a>
+                <a id="link-csv" href="#" target="_blank" download>Scarica dati.csv</a>
+                &mdash; voti e affluenza per sezione, aggiornati in tempo reale dal foglio di lavoro
               </span>
             </li>
             <li>
@@ -145,9 +139,8 @@
 
   <script>
     const PUBLISHED_ID = "2PACX-1vSXkyX7vkmpegphAnR6HxPimNMoLBtH3rixk7Lyn3jZPHWH468lUxpbXBZQVC3zr3HduLNMVgxDLcVs";
-    const base = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv&gid=`;
-    document.getElementById("link-csv-voti").href      = base + "1712458015";
-    document.getElementById("link-csv-affluenza").href = base + "683200541";
+    document.getElementById("link-csv").href =
+      `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=xlsx`;
   </script>
 </body>
 </html>
