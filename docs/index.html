@@ -106,13 +106,14 @@
             Impossibile caricare i dati. Verifica che il Google Sheet sia pubblicato
             e che lo <code>SHEET_ID</code> in <code>main.js</code> sia corretto.
           </div>
-
-          <!-- Panel info sezione (visibile al tap/click) -->
-          <div id="map-info-panel" style="display:none">
-            <div id="map-info-content"></div>
-            <button id="map-info-close" aria-label="Chiudi">×</button>
-          </div>
         </div>
+
+      <!-- Panel info sezione (fuori da map-wrapper per evitare overflow:hidden) -->
+      <div id="map-info-panel" style="display:none">
+        <div id="map-info-content"></div>
+        <button id="map-info-close" aria-label="Chiudi">×</button>
+      </div>
+
       </div>
 
     </div>
