@@ -38,8 +38,38 @@ let _sezioneIndex    = {};   // sezione → [layer, ...]
 
 // Tooltip globale unico
 let _tooltip          = null;
-let _tooltipPermanent = false;  // true se mostrato da click (mobile), false se da hover
-let _layerJustClicked = false;  // blocca il map click immediatamente dopo un layer click
+let _tooltipPermanent = false;
+let _layerJustClicked = false;
+
+// ─── UTILS MOBILE ─────────────────────────────────────
+const isMobile = () => window.matchMedia("(max-width: 640px)").matches;
+
+// Ray-casting point-in-polygon (ring = array di [lng, lat])
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if ((yi > lat) !== (yj > lat) && lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)
+      inside = !inside;
+  }
+  return inside;
+}
+
+function findFeatureAt(latlng) {
+  if (!_geojson) return null;
+  const { lat, lng } = latlng;
+  for (const f of _geojson.features) {
+    const g = f.geometry;
+    if (g.type === "Polygon") {
+      if (pointInRing(lng, lat, g.coordinates[0])) return f;
+    } else if (g.type === "MultiPolygon") {
+      for (const poly of g.coordinates)
+        if (pointInRing(lng, lat, poly[0])) return f;
+    }
+  }
+  return null;
+}
 
 // ─── UTILS ────────────────────────────────────────────
 function sheetCsvUrl(gid) {
@@ -132,10 +162,31 @@ function initMap() {
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
 
-  // Click su spazio vuoto: chiudi tutto — su mobile gestiamo la chiusura solo con × o stessa sezione
-  map.on("click", () => {
-    if (window.matchMedia("(max-width: 640px)").matches) return;
-    if (!_layerJustClicked) closeInfoPanel();
+  map.on("click", (e) => {
+    if (isMobile()) {
+      // Mobile: usa point-in-polygon per trovare la sezione toccata
+      const feature = findFeatureAt(e.latlng);
+      if (feature) {
+        const sez = String(feature.properties.sezione);
+        if (_selectedSection === sez) {
+          unhighlightSection(sez);
+          _selectedSection = null;
+          closeInfoPanel();
+        } else {
+          if (_selectedSection) unhighlightSection(_selectedSection);
+          _selectedSection = sez;
+          highlightSection(sez);
+          updateInfoPanel(sez);
+        }
+      } else {
+        if (_selectedSection) unhighlightSection(_selectedSection);
+        _selectedSection = null;
+        closeInfoPanel();
+      }
+    } else {
+      // Desktop: chiudi se click su spazio vuoto
+      if (!_layerJustClicked) closeInfoPanel();
+    }
   });
 
   // Pulsante × del panel
@@ -323,8 +374,9 @@ function renderLayer() {
         }, 80);
       });
 
-      // ── Click/tap: panel info + tooltip fisso (desktop) ──
+      // ── Click: su mobile gestito da map.on("click") + point-in-polygon ──
       layer.on("click", (e) => {
+        if (isMobile()) return;
         L.DomEvent.stopPropagation(e);
         _layerJustClicked = true;
         setTimeout(() => { _layerJustClicked = false; }, 100);
