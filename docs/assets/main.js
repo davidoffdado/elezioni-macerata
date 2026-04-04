@@ -132,8 +132,11 @@ function initMap() {
     subdomains: "abcd", maxZoom: 19
   }).addTo(map);
 
-  // Tap su spazio vuoto: chiudi tutto (ignorato se appena cliccato un layer)
-  map.on("click", () => { if (!_layerJustClicked) closeInfoPanel(); });
+  // Click su spazio vuoto: chiudi tutto — su mobile gestiamo la chiusura solo con × o stessa sezione
+  map.on("click", () => {
+    if (window.matchMedia("(max-width: 640px)").matches) return;
+    if (!_layerJustClicked) closeInfoPanel();
+  });
 
   // Pulsante × del panel
   document.getElementById("map-info-close")?.addEventListener("click", closeInfoPanel);
@@ -330,8 +333,7 @@ function renderLayer() {
         if (wasSameSection) {
           _tooltipPermanent = false;
           _tooltip.remove();
-          const panel = document.getElementById("map-info-panel");
-          if (panel) panel.style.display = "none";
+          closeInfoPanel();
         } else {
           updateInfoPanel(sez);
           if (!L.Browser.touch) {
