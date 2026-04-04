@@ -364,15 +364,30 @@ footer a { color: rgba(255,255,255,.8); }
 .info-panel-row .label { flex: 1; color: var(--color-muted); }
 .info-panel-row .value { font-weight: 700; }
 
-/* Su desktop il panel è discreto; su mobile è più in evidenza */
+/* Desktop: panel discreto sotto la mappa */
 @media (min-width: 641px) {
   #map-info-panel { border-top: 1px solid var(--color-border); }
 }
+
+/* Mobile: barra fissa in basso, si apre con .is-open */
 @media (max-width: 640px) {
   #map-info-panel {
-    padding: .9rem 2.5rem .9rem 1rem;
-    background: #fffdf5;
-    border-top: 2px solid var(--color-accent-a);
+    display: block !important;   /* sempre nel DOM, nascosto via transform */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    padding: 1rem 2.8rem calc(1rem + env(safe-area-inset-bottom)) 1.1rem;
+    background: #fff;
+    border-top: 3px solid var(--color-accent-a);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.13);
+    transform: translateY(100%);
+    transition: transform .25s ease;
+  }
+  #map-info-panel.is-open {
+    transform: translateY(0);
   }
 }
 

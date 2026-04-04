@@ -171,11 +171,12 @@ function updateInfoPanel(sez) {
 
   content.innerHTML = `<div class="info-panel-title">Sezione ${sez}</div>${rows}`;
   panel.style.display = "block";
+  panel.classList.add("is-open");
 }
 
 function closeInfoPanel() {
   const panel = document.getElementById("map-info-panel");
-  if (panel) panel.style.display = "none";
+  if (panel) { panel.classList.remove("is-open"); panel.style.display = "none"; }
   _tooltipPermanent = false;
   if (_tooltip) _tooltip.remove();
   if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; }
@@ -220,7 +221,7 @@ function renderLayer() {
   _tooltip          = L.tooltip({ sticky: false, opacity: 0.92 });
   _tooltipPermanent = false;
   const _panel = document.getElementById("map-info-panel");
-  if (_panel) _panel.style.display = "none";
+  if (_panel) { _panel.classList.remove("is-open"); _panel.style.display = "none"; }
 
   const cA      = candidates[selA];
   const cB      = candidates[selB];
