@@ -50,11 +50,10 @@
 
   <header class="page-header">
     <div class="page-header-inner">
-      <div class="page-tag">Com'è stato realizzato il progetto</div>
+      <div class="page-tag">Dietro i dati</div>
       <h1 class="page-title">Metodologia</h1>
       <p class="page-subtitle">
-        Dalla lista degli indirizzi dei seggi fino alla mappa interattiva:
-        descrizione del processo tecnico passo per passo.
+        I dati relativi alle elezioni, forniti dal Ministero dell'Interno, mostrano l'affluenza e le preferenze di ciascuna sezione, ma per poter vedere come i risultati elettorali siano distribuiti a livello geografico è necessario ricostruire i confini di ciascuna circoscrizione.
       </p>
     </div>
   </header>
@@ -66,15 +65,14 @@
         <div class="card">
           <div class="card-title">Il problema</div>
           <p class="prose">
-            I risultati elettorali italiani sono pubblicati per <strong>sezione</strong>,
-            non per indirizzo. Per mostrare come ha votato ogni quartiere — o addirittura
-            ogni edificio — occorre risolvere un problema geografico: a quale sezione
-            appartiene ogni edificio della città?
+            I risultati elettorali italiani sono pubblicati per <strong>sezione</strong>, ma la loro dimensione geografica 
+            è assente. Ad esempio, se si volesse sapere come hanno votato le periferie rispetto al centro, sarebbe 
+            necessario identificare quali sezioni rappresentano le rispettive zone e vedere i loro voti.
           </p>
           <p class="prose">
-            La soluzione che abbiamo adottato si basa sui <strong>poligoni di Voronoi</strong>:
-            dato l'elenco dei seggi geocodificati, ogni edificio viene assegnato alla sezione
-            il cui seggio è più vicino in linea d'aria.
+            La soluzione adottata si basa sul <a href="https://www.tandfonline.com/doi/full/10.1080/2474736X.2023.2185158#d1e311" target="_blank"> lavoro </a> di <strong> <a href="https://www.gabrielepinto.com/" target="_blank"> Gabriele Pinto</a></strong> 
+            che mira a ricostruire i limiti geografici di una sezione a partire dal viario elettorale del comune, cioè un documento che fornisce, per ogni sezione, le vie e i codici civici a esse appartenenti. Un esempio di ciò che è possibile ottenere seguendo l'approccio presente nell'articolo è l'<a href="https://gabrielepinto.github.io/referendum2026_mappepersezione/" target="_blank">analisi</a> di Gabriele
+            sui risultati del referendum costituzionale del 2026.
           </p>
         </div>
       </div>
@@ -89,11 +87,11 @@
               <div class="step-body">
                 <h3>Geocodifica dei seggi</h3>
                 <p>
-                  Partendo dal viario elettorale ufficiale del Comune di Macerata,
+                  Partendo dal viario elettorale ufficiale del Comune di Macerata (ottenuto tramite FOIA indirizzata all'ufficio elettorale),
                   abbiamo geocodificato gli indirizzi di tutti i seggi usando
-                  <strong>Nominatim / OpenStreetMap</strong> tramite il modulo
+                  <strong>Nominatim/OpenStreetMap</strong> tramite il modulo di Python
                   <code>geopy</code>. I punti non trovati automaticamente sono stati
-                  verificati manualmente su Google Maps.
+                  verificati manualmente su Google Maps, così come quelli che non rientravano nei confini del comune maceratese o venivano erroneamente interpretati dal geocoder - ad esempio, Via Macerata invece che Via Brigata Macerata.
                   Output: <code>final_data.xlsx</code> (sezione, lat, lon).
                 </p>
               </div>
@@ -103,22 +101,22 @@
               <div class="step-num">2</div>
               <div class="step-body">
                 <h3>Poligoni di Voronoi</h3>
-                <p>
+                  <p>
                   Con <code>voronoi.py</code> (shapely + geopandas) abbiamo generato
-                  i poligoni di Voronoi a partire dai punti seggio, ritagliandoli sul
-                  confine comunale di Macerata. Il risultato è un GeoJSON con un poligono
-                  per sezione. Output: <code>voronoi_per_sezione.geojson</code>.
-                </p>
+                  i poligoni di Voronoi a partire dai punti di ciascun indirizzo, limitando i poligoni più esterni al
+                  confine comunale di Macerata, ottenuto dal progetto <a href="https://www.confini-amministrativi.it/" target="_blank">Confini amministrativi</a>. Il risultato è un GeoJSON con un poligono
+                  per sezione, derivato dall'esplosione di tutti i poligoni appartenenti a ogni singolo codice civico. Output: <code>voronoi_per_sezione.geojson</code>.
+                  </p>
               </div>
             </div>
 
             <div class="step">
               <div class="step-num">3</div>
               <div class="step-body">
-                <h3>Assegnazione edifici → sezioni</h3>
+                <h3>Assegnazione di ogni indirizzo a ciascuna sezione</h3>
                 <p>
-                  Gli edifici di OpenStreetMap (scaricati via Overpass API) sono stati
-                  spazialmente joinati con i poligoni di Voronoi: ogni edificio eredita
+                  Gli edifici di OpenStreetMap (scaricati via Overpass API) sono stati 
+                  assegnati spazialmente ai poligoni di Voronoi: ogni edificio eredita
                   il numero di sezione del poligono che lo contiene.
                   Output: <code>edifici_colorabili_voti.geojson</code>.
                 </p>
@@ -128,10 +126,10 @@
             <div class="step">
               <div class="step-num">4</div>
               <div class="step-body">
-                <h3>Join con i dati elettorali</h3>
+                <h3>Unione con i dati elettorali</h3>
                 <p>
                   I risultati di voto e l'affluenza per sezione (fonti: Ministero
-                  dell'Interno / Comune di Macerata) sono stati uniti al GeoJSON
+                  dell'Interno/Comune di Macerata) sono stati uniti al GeoJSON
                   tramite <code>creazione_file_voti.py</code>, usando il numero di
                   sezione come chiave.
                 </p>
@@ -158,8 +156,12 @@
       <div class="section">
         <div class="card">
           <div class="card-title">Limiti e avvertenze</div>
+                    <p class="prose">
+            Il colore di ogni edificio è quello della sezione, non di quello specifico edificio: il voto rimane anonimo e la preferenza o l'affluenza resta sempre al livello
+            della sezione, non della singola abitazione o edificio.
+          </p>
           <p class="prose">
-            L'assegnazione per Voronoi è una <em>approssimazione</em>: in realtà le
+            L'assegnazione per Voronoi è un'approssimazione: in realtà le
             circoscrizioni elettorali seguono confini stradali o topografici che non
             sempre coincidono con la geometria del Voronoi. Per questo alcune
             aree di confine potrebbero essere attribuite alla sezione sbagliata.
@@ -176,8 +178,8 @@
 
   <footer>
     <p>
-      Dati: <a href="dati.html">fonti e licenze</a> &mdash;
-      Codice: <a href="https://github.com/davidoffdado" target="_blank">GitHub</a>
+      Dati: <a href="dati.html">Fonti e licenze</a> -
+      Codice: <a href="https://github.com/davidoffdado/elezioni-macerata" target="_blank">GitHub</a>
     </p>
   </footer>
 

@@ -147,7 +147,7 @@
 
   <footer>
     <p>
-      Dati: <a href="dati.html">Fonti e licenze</a> &mdash;
+      Dati: <a href="dati.html">Fonti e licenze</a> -
       Codice: <a href="https://github.com/davidoffdado/elezioni-macerata" target="_blank">GitHub</a>
     </p>
   </footer>
@@ -273,8 +273,8 @@
       const top    = ordinati.slice(0, 10);
       const bottom = [...ordinati].reverse().slice(0, 10);
 
-      document.getElementById("title-top").textContent    = `Sezioni migliori — ${candidato.nome}`;
-      document.getElementById("title-bottom").textContent = `Sezioni peggiori — ${candidato.nome}`;
+      document.getElementById("title-top").textContent    = `Sezioni migliori - ${candidato.nome}`;
+      document.getElementById("title-bottom").textContent = `Sezioni peggiori - ${candidato.nome}`;
 
       function renderRows(rows, tbody) {
         tbody.innerHTML = rows.map(r => `
