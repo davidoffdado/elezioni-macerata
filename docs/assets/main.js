@@ -294,9 +294,34 @@ function initSearch() {
     if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; closeInfoPanel(); }
   });
 
+  let _activeIdx = -1;
+
+  function setActive(idx) {
+    const items = dropdown.querySelectorAll("li");
+    items.forEach((li, i) => li.classList.toggle("search-active", i === idx));
+    _activeIdx = idx;
+  }
+
   input.addEventListener("keydown", e => {
-    if (e.key === "Escape") { dropdown.hidden = true; input.blur(); }
+    const items = dropdown.querySelectorAll("li");
+    if (e.key === "Escape") { dropdown.hidden = true; input.blur(); return; }
+    if (dropdown.hidden || !items.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive(Math.min(_activeIdx + 1, items.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive(Math.max(_activeIdx - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const idx = _activeIdx >= 0 ? _activeIdx : 0;
+      if (items[idx]) items[idx].dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    }
   });
+
+  // reset indice attivo ad ogni nuova ricerca
+  const origInput = input.oninput;
+  input.addEventListener("input", () => { _activeIdx = -1; });
 
   input.addEventListener("blur", () => {
     // piccolo ritardo per permettere il mousedown sui risultati

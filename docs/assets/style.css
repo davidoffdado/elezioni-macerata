@@ -339,7 +339,8 @@ a:hover { text-decoration: underline; }
   font-size: .87rem;
   flex-wrap: wrap;
 }
-#map-search-dropdown li:hover { background: var(--color-bg); }
+#map-search-dropdown li:hover,
+#map-search-dropdown li.search-active { background: var(--color-bg); }
 
 .search-badge {
   font-size: .65rem;
