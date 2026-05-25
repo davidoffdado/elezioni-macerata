@@ -43,6 +43,7 @@ let _layerJustClicked = false;
 
 // Indice di ricerca
 let _searchIndex = [];
+let _searchHighlightLayers = [];   // layers evidenziati tramite ricerca via
 
 // ─── UTILS MOBILE ─────────────────────────────────────
 const isMobile = () => window.matchMedia("(max-width: 640px)").matches;
@@ -338,13 +339,18 @@ function selectSearchResult(r, input, dropdown, clearBtn) {
   if (clearBtn) clearBtn.hidden = false;
   dropdown.hidden = true;
 
+  // pulisce stato precedente
+  if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; }
+  closeInfoPanel();
+
   map.fitBounds(r.bounds, { padding: [40, 40], maxZoom: 17 });
 
   if (r.type === "sezione") {
-    if (_selectedSection) unhighlightSection(_selectedSection);
     _selectedSection = r.sez;
     highlightSection(r.sez);
     updateInfoPanel(r.sez);
+  } else if (r.type === "via") {
+    highlightStreet(r.label);
   }
 }
 
@@ -428,6 +434,7 @@ function closeInfoPanel() {
   _tooltipPermanent = false;
   if (_tooltip) _tooltip.remove();
   if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; }
+  clearStreetHighlight();
 }
 
 // ─── HIGHLIGHT SEZIONE ────────────────────────────────
@@ -440,6 +447,24 @@ function highlightSection(sez) {
 
 function unhighlightSection(sez) {
   (_sezioneIndex[sez] || []).forEach(l => geojsonLayer.resetStyle(l));
+}
+
+function highlightStreet(streetName) {
+  clearStreetHighlight();
+  if (!geojsonLayer) return;
+  geojsonLayer.eachLayer(layer => {
+    if (layer.feature?.properties?.["addr:street"] === streetName) {
+      layer.setStyle({ color: "#ffffff", weight: 3, fillOpacity: 0.95 });
+      layer.bringToFront();
+      _searchHighlightLayers.push(layer);
+    }
+  });
+}
+
+function clearStreetHighlight() {
+  if (!geojsonLayer) return;
+  _searchHighlightLayers.forEach(l => geojsonLayer.resetStyle(l));
+  _searchHighlightLayers = [];
 }
 
 function toggleSection(sez) {
@@ -463,6 +488,7 @@ function renderLayer() {
   _hoveredSection  = null;
   clearTimeout(_hoverTimeout);
   _sezioneIndex = {};
+  _searchHighlightLayers = [];
 
   // ricrea tooltip globale e nascondi panel
   if (_tooltip) _tooltip.remove();
