@@ -41,6 +41,9 @@ let _tooltip          = null;
 let _tooltipPermanent = false;
 let _layerJustClicked = false;
 
+// Indice di ricerca
+let _searchIndex = [];
+
 // ─── UTILS MOBILE ─────────────────────────────────────
 const isMobile = () => window.matchMedia("(max-width: 640px)").matches;
 
@@ -152,6 +155,172 @@ function parseCandidates(metaRows) {
     i++;
   }
   return result;
+}
+
+// ─── RICERCA ──────────────────────────────────────────
+function normalizeStr(s) {
+  return (s || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ").trim();
+}
+
+function featureBBoxCoords(feature) {
+  let s = Infinity, n = -Infinity, w = Infinity, e = -Infinity;
+  function processRing(ring) {
+    ring.forEach(([lng, lat]) => {
+      if (lat < s) s = lat; if (lat > n) n = lat;
+      if (lng < w) w = lng; if (lng > e) e = lng;
+    });
+  }
+  const g = feature.geometry;
+  if (g.type === "Polygon")      g.coordinates.forEach(processRing);
+  if (g.type === "MultiPolygon") g.coordinates.forEach(p => p.forEach(processRing));
+  return isFinite(s) ? { s, n, w, e } : null;
+}
+
+function buildSearchIndex() {
+  if (!_geojson) return;
+  const sectionBox = {};   // sez → {s,n,w,e}
+  const sectionHint = {};  // sez → stringa zona
+  const streetBox  = {};   // street → {s,n,w,e, sections: Set}
+
+  _geojson.features.forEach(f => {
+    const p   = f.properties;
+    const sez = String(p.sezione);
+    const bb  = featureBBoxCoords(f);
+    if (!bb) return;
+
+    // bounds sezione
+    if (!sectionBox[sez]) sectionBox[sez] = { ...bb };
+    else {
+      const b = sectionBox[sez];
+      if (bb.s < b.s) b.s = bb.s; if (bb.n > b.n) b.n = bb.n;
+      if (bb.w < b.w) b.w = bb.w; if (bb.e > b.e) b.e = bb.e;
+    }
+
+    // hint zona (indirizzo_clean dal viario o addr:place)
+    if (!sectionHint[sez]) {
+      sectionHint[sez] = p["addr:suburb"] || p["addr:place"] ||
+                         p["addr:hamlet"] || p["indirizzo_clean"] || "";
+    }
+
+    // bounds via
+    const street = p["addr:street"];
+    if (street) {
+      if (!streetBox[street]) streetBox[street] = { ...bb, sections: new Set([sez]) };
+      else {
+        const b = streetBox[street];
+        if (bb.s < b.s) b.s = bb.s; if (bb.n > b.n) b.n = bb.n;
+        if (bb.w < b.w) b.w = bb.w; if (bb.e > b.e) b.e = bb.e;
+        b.sections.add(sez);
+      }
+    }
+  });
+
+  _searchIndex = [];
+
+  // Sezioni (ordinate per numero)
+  Object.keys(sectionBox).sort((a, b) => parseInt(a) - parseInt(b)).forEach(sez => {
+    const b = sectionBox[sez];
+    _searchIndex.push({
+      type: "sezione", label: `Sezione ${sez}`, sez,
+      hint: sectionHint[sez],
+      bounds: [[b.s, b.w], [b.n, b.e]],
+    });
+  });
+
+  // Strade (ordinate alfabeticamente)
+  Object.keys(streetBox).sort((a, b) => a.localeCompare(b, "it")).forEach(street => {
+    const b = streetBox[street];
+    const sezioniList = [...b.sections].sort((a, z) => parseInt(a) - parseInt(z));
+    _searchIndex.push({
+      type: "via", label: street,
+      sections: sezioniList,
+      bounds: [[b.s, b.w], [b.n, b.e]],
+    });
+  });
+}
+
+function initSearch() {
+  const input    = document.getElementById("map-search-input");
+  const dropdown = document.getElementById("map-search-dropdown");
+  const clearBtn = document.getElementById("map-search-clear");
+  if (!input) return;
+
+  function renderDropdown(results) {
+    dropdown.innerHTML = "";
+    if (!results.length) { dropdown.hidden = true; return; }
+    results.forEach(r => {
+      const li = document.createElement("li");
+      const badgeCls = r.type === "sezione" ? "search-badge-sez" : "search-badge-via";
+      const badgeTxt = r.type === "sezione" ? "Sez." : "Via";
+      let sub = "";
+      if (r.type === "sezione" && r.hint)
+        sub = `<span class="search-sub">${r.hint}</span>`;
+      if (r.type === "via" && r.sections?.length)
+        sub = `<span class="search-sub">Sezione ${r.sections.join(", ")}</span>`;
+      li.innerHTML =
+        `<span class="search-badge ${badgeCls}">${badgeTxt}</span>` +
+        `<span class="search-label">${r.label}</span>${sub}`;
+      li.addEventListener("mousedown", e => {
+        e.preventDefault(); // evita blur prima del click
+        selectSearchResult(r, input, dropdown, clearBtn);
+      });
+      dropdown.appendChild(li);
+    });
+    dropdown.hidden = false;
+  }
+
+  input.addEventListener("input", () => {
+    const q = normalizeStr(input.value);
+    clearBtn.hidden = !input.value;
+    if (!q || q.length < 2) { dropdown.hidden = true; return; }
+
+    const results = _searchIndex.filter(r => {
+      const lbl = normalizeStr(r.label);
+      const hint = normalizeStr(r.hint || "");
+      if (lbl.includes(q)) return true;
+      if (hint.includes(q)) return true;
+      // ricerca per solo numero → match sezione
+      if (r.type === "sezione" && /^\d+$/.test(q.trim()) && r.sez === q.trim()) return true;
+      return false;
+    }).slice(0, 25);
+
+    renderDropdown(results);
+  });
+
+  clearBtn.addEventListener("click", () => {
+    input.value = ""; clearBtn.hidden = true; dropdown.hidden = true; input.focus();
+    if (_selectedSection) { unhighlightSection(_selectedSection); _selectedSection = null; closeInfoPanel(); }
+  });
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Escape") { dropdown.hidden = true; input.blur(); }
+  });
+
+  input.addEventListener("blur", () => {
+    // piccolo ritardo per permettere il mousedown sui risultati
+    setTimeout(() => { dropdown.hidden = true; }, 150);
+  });
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#map-search-wrap")) dropdown.hidden = true;
+  });
+}
+
+function selectSearchResult(r, input, dropdown, clearBtn) {
+  input.value = r.label;
+  if (clearBtn) clearBtn.hidden = false;
+  dropdown.hidden = true;
+
+  map.fitBounds(r.bounds, { padding: [40, 40], maxZoom: 17 });
+
+  if (r.type === "sezione") {
+    if (_selectedSection) unhighlightSection(_selectedSection);
+    _selectedSection = r.sez;
+    highlightSection(r.sez);
+    updateInfoPanel(r.sez);
+  }
 }
 
 // ─── MAPPA ────────────────────────────────────────────
@@ -517,6 +686,7 @@ function buildSelectors() {
 // ─── INIT ─────────────────────────────────────────────
 async function init() {
   initMap();
+  initSearch();
 
   try {
     // Meta
@@ -547,6 +717,7 @@ async function init() {
     affluenzaRows.forEach(r => { _affluenzaMap[String(r.sezione)] = r; });
 
     _geojson = geojson;
+    buildSearchIndex();
 
     buildSelectors();
     renderLayer();
